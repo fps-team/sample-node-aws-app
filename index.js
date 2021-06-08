@@ -11,9 +11,10 @@ app.get('/', (req, res) => {
 })
 
 app.get('/amcharts/simple-column-chart', (req, res) => {
+  let _id = uuidv4();
   let data = {
     "properties": {
-      "_id": uuidv4(),
+      "_id": _id.replace(/-/gi, ""),
       "categoryX": "country",
       "valueY": "visits",
       "seriesName": "Visits",
