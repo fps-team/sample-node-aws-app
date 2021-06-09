@@ -4,6 +4,8 @@ const port = 8000
 const cors = require("cors")
 const { v4: uuidv4 } = require('uuid');
 
+const LIST_OF_REGIONS = ["AMER", "APAC", "EMEA"];
+
 app.use(cors())
 
 app.get('/', (req, res) => {
@@ -11,57 +13,76 @@ app.get('/', (req, res) => {
 })
 
 app.get('/amcharts/simple-column-chart', (req, res) => {
-  let _id = uuidv4();
-  let data = {
-    "properties": {
-      "_id": _id.replace(/-/gi, ""),
-      "categoryX": "country",
-      "valueY": "visits",
-      "seriesName": "Visits",
-    },
-    "data": [{
-      "country": "USA",
-      "visits": 2025
-    }, {
-      "country": "China",
-      "visits": 1882
-    }, {
-      "country": "Japan",
-      "visits": 1809
-    }, {
-      "country": "Germany",
-      "visits": 1322
-    }, {
-      "country": "UK",
-      "visits": 1122
-    }, {
-      "country": "France",
-      "visits": 1114
-    }, {
-      "country": "India",
-      "visits": 984
-    }, {
-      "country": "Spain",
-      "visits": 711
-    }, {
-      "country": "Netherlands",
-      "visits": 665
-    }, {
-      "country": "Russia",
-      "visits": 580
-    }, {
-      "country": "South Korea",
-      "visits": 443
-    }, {
-      "country": "Canada",
-      "visits": 441
-    }, {
-      "country": "Brazil",
-      "visits": 395
-    }]
+  let region = req.query.region !== undefined && req.query.region !== "" ? req.query.region : null;
+  let _id = uuidv4().replace(/-/gi, "");
+  let properties = {
+    "_id": _id,
+    "categoryX": "country",
+    "valueY": "visits",
+    "seriesName": "Visits",
+  };
+  let data = [{
+    "region": "AMER",
+    "country": "USA",
+    "visits": 2025
+  }, {
+    "region": "APAC",
+    "country": "China",
+    "visits": 1882
+  }, {
+    "region": "APAC",
+    "country": "Japan",
+    "visits": 1809
+  }, {
+    "region": "EMEA",
+    "country": "Germany",
+    "visits": 1322
+  }, {
+    "region": "EMEA",
+    "country": "UK",
+    "visits": 1122
+  }, {
+    "region": "EMEA",
+    "country": "France",
+    "visits": 1114
+  }, {
+    "region": "APAC",
+    "country": "India",
+    "visits": 984
+  }, {
+    "region": "EMEA",
+    "country": "Spain",
+    "visits": 711
+  }, {
+    "region": "EMEA",
+    "country": "Netherlands",
+    "visits": 665
+  }, {
+    "region": "APAC",
+    "country": "Russia",
+    "visits": 580
+  }, {
+    "region": "APAC",
+    "country": "South Korea",
+    "visits": 443
+  }, {
+    "region": "AMER",
+    "country": "Canada",
+    "visits": 441
+  }, {
+    "region": "AMER",
+    "country": "Brazil",
+    "visits": 395
+  }];
+  let output = region !== null ? {
+    "properties": properties,
+    "data": LIST_OF_REGIONS.some(item => item === region.toUpperCase()) ? data.filter(value => value.region === region.toUpperCase()) : []
+  } : {
+    "properties": properties,
+    "data": data
   };
 
-  res.json(data);
+  res.json(output);
 })
 
 app.listen(port, () => {
