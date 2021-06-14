@@ -1,6 +1,6 @@
 const express = require('express')
 const app = express()
-const port = 8000
+const port = process.env.PORT || 80
 const cors = require("cors")
 const { v4: uuidv4 } = require('uuid');
 
