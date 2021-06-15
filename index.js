@@ -1,10 +1,46 @@
 const express = require('express')
 const app = express()
-const port = process.env.PORT || 80
 const cors = require("cors")
 const { v4: uuidv4 } = require('uuid');
+const axios = require("axios")
 
+const { BASE_URL, API_VERSION, SIGN_IN_URL } = require("./constants/URL");
+const { TABLEAU_LOGIN_CREDENTIALS } = require("./constants/auth");
+
+const PORT = process.env.PORT || 8000;
 const LIST_OF_REGIONS = ["AMER", "APAC", "EMEA"];
+
+const loginUser = () => {
+  return axios({
+    method: 'post',
+    url: SIGN_IN_URL,
+    data: TABLEAU_LOGIN_CREDENTIALS
+  })
+  .then(function (response) {
+    return response.data;
+  })
+  .catch(function (error) {
+    console.log(error);
+    return null;
+  });
+}
+
+const retrieveDataSources = (token, siteId) => {
+  return axios({
+    method: 'get',
+    url: BASE_URL + API_VERSION + "/sites/" + siteId + "/datasources",
+    headers: {
+      'X-Tableau-Auth': token
+    }
+  })
+  .then(function (response) {
+    return response.data;
+  })
+  .catch(function (error) {
+    console.log(error);
+    return null;
+  }); 
+}
 
 app.use(cors())
 
@@ -85,6 +121,41 @@ app.get('/amcharts/simple-column-chart', (req, res) => {
   res.json(output);
 })
 
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
+app.get('/datasource/simple-column-chart', async (req, res) => {
+  let login = await loginUser();
+
+  if (login) {
+    let credentials = login.credentials;
+    let dataSources = await retrieveDataSources(credentials.token, credentials.site.id)
+    console.log(dataSources)
+    res.format ({
+      'text/html': function() {
+          res.status(200).send(JSON.stringify(dataSources, null, 2)); 
+      },
+      'application/json': function() {
+          res.status(200).json(dataSources);
+      },
+      'default': function() {
+          // log the request and respond with 406
+          res.status(200).status(406).send('Not Acceptable');
+      }
+    });
+  } else {
+    res.format({
+      'text/html': function() {
+          res.status(500).send(JSON.stringify({"message": "error!"}, null, 2)); 
+      },
+      'application/json': function() {
+        res.status(500).json({"message": "error!"});
+      },
+      'default': function() {
+        // log the request and respond with 406
+        res.status(406).send('Not Acceptable');
+      }
+    });
+  }
+})
+
+app.listen(PORT, () => {
+  console.log(`Example app listening at http://localhost:${PORT}`)
 })
