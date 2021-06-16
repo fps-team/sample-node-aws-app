@@ -126,6 +126,92 @@ app.get('/amcharts/simple-column-chart', (req, res) => {
   res.json(output);
 })
 
+app.get('/amcharts/chord-diagram-chart', (req, res) => {
+  const colorCodingScheme = [
+      {
+        "from": "NWKA",
+        "color": "#5e5e5e"
+      },
+      {
+          "from": "NWKB",
+          "color": "#5e5e5e"
+      },
+      {
+          "from": "CDMA",
+          "color": "#f1d073"
+      }, {
+          "from": "CDMB",
+          "color": "#f1d073"
+      },  
+      {
+          "from": "CITA",
+          "color": "#db6041"
+      }, {
+          "from": "CITB",
+          "color": "#db6041"
+      }, 
+      {
+          "from": "ENT & FINA",
+          "color": "#28c5f4"
+      }, {
+          "from": "ENT & FINB",
+          "color": "#28c5f4"
+      }
+  ];
+
+  let data = [
+    { from: "CITB", to: "CITB", value: 31824 },
+    { from: "CDMB", to: "CDMB", value: 7818 },
+    { from: "NWKB", to: "NWKB", value: 210962 },
+    { from: "ENT & FINB", to: "ENT & FINB", value: 55440 },
+    { from: "CDMB", to: "CITB", value: 2901 },
+    { from: "CITB", to: "CDMB", value: 2901 },
+    { from: "CITA", to: "CDMA", value: 1919 },
+    { from: "CDMA", to: "CITA", value: 1919 },
+    { from: "CITB", to: "NWKB", value: 46330 },
+    { from: "NWKB", to: "CITB", value: 46330 },
+    { from: "NWKA", to: "CITA", value: 22760 },
+    { from: "CITA", to: "NWKA", value: 22760 },
+    { from: "CITB", to: "ENT & FINB", value: 2936 },
+    { from: "ENT & FINB", to: "CITB", value: 2936 },
+    { from: "ENT & FINA", to: "CITA", value: 14539 },
+    { from: "CITA", to: "ENT & FINA", value: 14539 },
+    { from: "CDMB", to: "NWKB", value: 27883 },
+    { from: "NWKB", to: "CDMB", value: 27883 },
+    { from: "NWKA", to: "CDMA", value: 6095 },
+    { from: "CDMA", to: "NWKA", value: 6095 },
+    { from: "CDMB", to: "ENT & FINB", value: 1402 },
+    { from: "ENT & FINB", to: "CDMB", value: 1402 },
+    { from: "ENT & FINA", to: "CDMA", value: 2287 },
+    { from: "CDMA", to: "ENT & FINA", value: 2287 },
+    { from: "NWKB", to: "ENT & FINB", value: 11987 },
+    { from: "ENT & FINB", to: "NWKB", value: 11987 },
+    { from: "ENT & FINA", to: "NWKA", value: 49374 },
+    { from: "NWKA", to: "ENT & FINA", value: 49374 }
+  ].map((item, i) => ({
+    _id: i + 1, 
+    from: item.from,
+    to: item.to,
+    value: item.value
+  }));
+
+  let output = prettyHtml([...colorCodingScheme, ...data]);
+
+  res.format ({
+    'text/html': function() {
+        res.render("index", { output }); 
+    },
+    'application/json': function() {
+        res.status(200).json(output);
+    },
+    'default': function() {
+        // log the request and respond with 406
+        res.status(200).status(406).send('Not Acceptable');
+    }
+  });
+
+})
+
 app.get('/datasource/simple-column-chart', async (req, res) => {
   let login = await loginUser();
 
