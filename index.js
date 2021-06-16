@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+const path = require("path")
 const cors = require("cors")
 const { v4: uuidv4 } = require('uuid');
 const axios = require("axios")
@@ -9,6 +10,8 @@ const { TABLEAU_LOGIN_CREDENTIALS } = require("./constants/auth");
 
 const PORT = process.env.PORT || 8000;
 const LIST_OF_REGIONS = ["AMER", "APAC", "EMEA"];
+
+let prettyHtml = require('json-pretty-html').default;
 
 const loginUser = () => {
   return axios({
@@ -43,9 +46,11 @@ const retrieveDataSources = (token, siteId) => {
 }
 
 app.use(cors())
+app.use(express.static(path.join(__dirname, 'views')));
+app.set('view engine', 'ejs');
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+   res.send("Hello World!");
 })
 
 app.get('/amcharts/simple-column-chart', (req, res) => {
@@ -127,10 +132,10 @@ app.get('/datasource/simple-column-chart', async (req, res) => {
   if (login) {
     let credentials = login.credentials;
     let dataSources = await retrieveDataSources(credentials.token, credentials.site.id)
-    console.log(dataSources)
+
     res.format ({
       'text/html': function() {
-          res.status(200).send(JSON.stringify(dataSources, null, 2)); 
+          res.render("index", { output: prettyHtml(dataSources) }); 
       },
       'application/json': function() {
           res.status(200).json(dataSources);
