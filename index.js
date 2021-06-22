@@ -54,7 +54,7 @@ const retrieveData = (token, siteId, region) => {
       "country": item.Country,
       "visits": parseInt(item["Number of Visits"])
     }));
-    console.log(response.data)
+
     return region !== null ? {
       "properties": properties,
       "data": LIST_OF_REGIONS.some(item => item === region.toUpperCase()) ? parsedData : []
