@@ -7,11 +7,13 @@ const axios = require("axios")
 
 const { BASE_URL, API_VERSION, SIGN_IN_URL } = require("./constants/URL");
 const { TABLEAU_LOGIN_CREDENTIALS } = require("./constants/auth");
+const { csvJSON } = require("./common/helper");
 
 const PORT = process.env.PORT || 8000;
 const LIST_OF_REGIONS = ["AMER", "APAC", "EMEA"];
 
 let prettyHtml = require('json-pretty-html').default;
+
 
 const loginUser = () => {
   return axios({
@@ -28,16 +30,33 @@ const loginUser = () => {
   });
 }
 
-const retrieveDataSources = (token, siteId) => {
+const retrieveData = (token, siteId) => {
   return axios({
     method: 'get',
-    url: BASE_URL + API_VERSION + "/sites/" + siteId + "/datasources",
+    url: BASE_URL + API_VERSION + "/sites/" + siteId + "/views/006b868a-6b47-4726-bf16-320470c9f00e/data",
     headers: {
       'X-Tableau-Auth': token
     }
   })
   .then(function (response) {
-    return response.data;
+    let properties = {
+      "_id": uuidv4().replace(/-/gi, ""),
+      "categoryX": "country",
+      "valueY": "visits",
+      "seriesName": "Visits",
+    };
+    let parsedData = JSON.parse(csvJSON(response.data))
+    .filter(value => value.Country !== '')
+    .map(item => ({
+      "region": item.Region,
+      "country": item.Country,
+      "visits": parseInt(item["Number of Visits"])
+    }));
+
+    return {
+      "properties": properties,
+      "data": parsedData
+    };
   })
   .catch(function (error) {
     console.log(error);
@@ -212,19 +231,19 @@ app.get('/amcharts/chord-diagram-chart', (req, res) => {
 
 })
 
-app.get('/datasource/simple-column-chart', async (req, res) => {
+app.get('/data/simple-column-chart', async (req, res) => {
   let login = await loginUser();
 
   if (login) {
     let credentials = login.credentials;
-    let dataSources = await retrieveDataSources(credentials.token, credentials.site.id)
+    let data = await retrieveData(credentials.token, credentials.site.id)
 
     res.format ({
       'text/html': function() {
-          res.render("index", { output: prettyHtml(dataSources) }); 
+          res.render("index", { output: prettyHtml(data) }); 
       },
       'application/json': function() {
-          res.status(200).json(dataSources);
+          res.status(200).json(data);
       },
       'default': function() {
           // log the request and respond with 406
