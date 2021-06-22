@@ -30,10 +30,12 @@ const loginUser = () => {
   });
 }
 
-const retrieveData = (token, siteId) => {
+const retrieveData = (token, siteId, region) => {
+  let filterRegion = region !== null ? (LIST_OF_REGIONS.some(item => item === region.toUpperCase()) ? `?vf_Region=${region}` : '') : '';
+
   return axios({
     method: 'get',
-    url: BASE_URL + API_VERSION + "/sites/" + siteId + "/views/006b868a-6b47-4726-bf16-320470c9f00e/data",
+    url: BASE_URL + API_VERSION + "/sites/" + siteId + "/views/006b868a-6b47-4726-bf16-320470c9f00e/data" + filterRegion,
     headers: {
       'X-Tableau-Auth': token
     }
@@ -52,8 +54,11 @@ const retrieveData = (token, siteId) => {
       "country": item.Country,
       "visits": parseInt(item["Number of Visits"])
     }));
-
-    return {
+    console.log(response.data)
+    return region !== null ? {
+      "properties": properties,
+      "data": LIST_OF_REGIONS.some(item => item === region.toUpperCase()) ? parsedData : []
+    } : {
       "properties": properties,
       "data": parsedData
     };
@@ -236,7 +241,8 @@ app.get('/data/simple-column-chart', async (req, res) => {
 
   if (login) {
     let credentials = login.credentials;
-    let data = await retrieveData(credentials.token, credentials.site.id)
+    let region = req.query.region !== undefined && req.query.region !== "" ? req.query.region : null;
+    let data = await retrieveData(credentials.token, credentials.site.id, region)
 
     res.format ({
       'text/html': function() {
